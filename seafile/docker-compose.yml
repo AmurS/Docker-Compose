@@ -1,0 +1,58 @@
+version: '3.7'
+services:
+  db:
+    image: mariadb:10.1
+    container_name: seafile-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=dbdbdb321  # Required, set the root's password of MySQL service.
+      - MYSQL_LOG_CONSOLE=true
+    volumes:
+      - seafile-db:/var/lib/mysql  # Required, specifies the path to MySQL data persistent store.
+    networks:
+      - seafile
+
+  memcached:
+    image: memcached:1.5.6
+    container_name: seafile-memcached
+    restart: unless-stopped
+    entrypoint: memcached -m 256
+    networks:
+      - seafile
+
+  seafile:
+    image: seafileltd/seafile-mc:latest
+    container_name: seafile
+    restart: unless-stopped
+    expose:
+      - 80
+      - 443
+    volumes:
+      - seafile-data:/shared   # Required, specifies the path to Seafile data persistent store.
+    networks:
+      - root_default
+      - seafile
+    environment:
+      - DB_HOST=db
+      - DB_ROOT_PASSWD=dbdbdb321 # Required, the value shuold be root's password of MySQL service.
+      - TIME_ZONE=Asia/Jakarta  # Optional, default is UTC. Should be uncomment and set to your local time zone.
+      - SEAFILE_ADMIN_EMAIL=amurdwys@gmail.com # Specifies Seafile admin user, default is 'me@example.com'.
+      - SEAFILE_ADMIN_PASSWORD=Ndakada240398     # Specifies Seafile admin password, default is 'asecret'.
+      - SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
+      - SEAFILE_SERVER_HOSTNAME=sea.korone.my.id # Specifies your domainname
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.seafile.loadbalancer.server.port=80
+      - traefik.http.routers.seafile.rule=Host(`sea.korone.my.id`)
+      - traefik.http.routers.seafile.tls.certresolver=letsencrypt
+      - traefik.http.routers.seafile.entrypoints=websecure
+      - traefik.docker.network=root_default
+
+networks:
+  root_default:
+    external: true
+  seafile:
+
+volumes:
+  seafile-db:
+  seafile-data:
