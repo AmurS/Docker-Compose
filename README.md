@@ -8,7 +8,7 @@ This is a repository for my simple docker compose configs that I deploy on my se
 
 
 ### Docker Compose
-* [Portainer with Traefik](portainer-traefik/README.md)
-* [Watchtower](watchtower/README.md)
-* [OwnCloud](owncloud/README.md)
-* [Seafile](seafile/README.md)
+* [Portainer with Traefik](portainer-traefik/)
+* [Watchtower](watchtower/)
+* [OwnCloud](owncloud/)
+* [Seafile](seafile/)
