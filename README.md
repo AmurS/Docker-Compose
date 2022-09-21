@@ -12,3 +12,4 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Watchtower](watchtower/)
 * [OwnCloud](owncloud/)
 * [Seafile](seafile/)
+* [Uptime Kuma](uptime-kuma/)
