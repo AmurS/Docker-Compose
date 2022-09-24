@@ -13,3 +13,4 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [OwnCloud](owncloud/)
 * [Seafile](seafile/)
 * [Uptime Kuma](uptime-kuma/)
+* [OpenSpeedTest](openspeedtest/)

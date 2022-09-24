@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  openspeedtest:
+    image: openspeedtest/latest
+    container_name: OpenSpeedtest
+    restart: unless-stopped
+    networks:
+      - portainer-traefik_default
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.openspeed.loadbalancer.server.port=3000
+      - traefik.http.routers.openspeed.rule=Host(`speedtest.domain.id`)
+      - traefik.http.routers.openspeed.tls.certresolver=letsencrypt
+      - traefik.http.routers.openspeed.entrypoints=websecure
+
+networks:
+  portainer-traefik_default:
+    external: true
