@@ -8,10 +8,6 @@ This is a repository for my simple docker compose configs that I deploy on my se
 
 
 ### Docker Compose
-<<<<<<< HEAD
-
-=======
->>>>>>> c5fbcb4a60d60e3b8c9afdd29cab886c9d48ad63
 * [Portainer with Traefik](portainer-traefik/)
 * [Portainer + Traefik + Authentik](portainer-traefik-authentik/)
 * [Watchtower](watchtower/)
@@ -20,7 +16,3 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Uptime Kuma](uptime-kuma/)
 * [OpenSpeedTest](openspeedtest/)
 * [LibreSpeedTest](librespeedtest/)
-<<<<<<< HEAD
-
-=======
->>>>>>> c5fbcb4a60d60e3b8c9afdd29cab886c9d48ad63

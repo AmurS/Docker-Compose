@@ -43,15 +43,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.seafile.loadbalancer.server.port=80
-<<<<<<< HEAD
-<<<<<<< HEAD
       - traefik.http.routers.seafile.rule=Host(`sea.domain.id`)
-=======
-      - traefik.http.routers.seafile.rule=Host(`sea.korone.my.id`)
->>>>>>> ee84511... Init.
-=======
-      - traefik.http.routers.seafile.rule=Host(`sea.domain.id`)
->>>>>>> c5fbcb4a60d60e3b8c9afdd29cab886c9d48ad63
       - traefik.http.routers.seafile.tls.certresolver=letsencrypt
       - traefik.http.routers.seafile.entrypoints=websecure
       - traefik.docker.network=root_default
