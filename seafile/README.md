@@ -54,4 +54,8 @@ OAUTH_ATTRIBUTE_MAP = {
     "id": (False, "not used"),
     "email": (True, "email"),
 }
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> c5fbcb4a60d60e3b8c9afdd29cab886c9d48ad63

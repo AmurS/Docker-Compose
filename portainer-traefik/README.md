@@ -1,4 +1,8 @@
 # Portainer with Traefik
+<<<<<<< HEAD
+=======
+
+>>>>>>> c5fbcb4a60d60e3b8c9afdd29cab886c9d48ad63
 ### Portainer edge agent with Traefik
 When using Portainer edge agent with trafeik we can't use it directly.
 First you need to decode the  `EDGE_KEY` in order to obtain the endpoint and fingerprint. We can use https://www.base64decode.org/ to decode and encode.
