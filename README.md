@@ -9,6 +9,7 @@ This is a repository for my simple docker compose configs that I deploy on my se
 
 ### Docker Compose
 * [Portainer with Traefik](portainer-traefik/)
+* [Portainer + Traefik + Authentik](portainer-traefik-authentik/)
 * [Watchtower](watchtower/)
 * [OwnCloud](owncloud/)
 * [Seafile](seafile/)
