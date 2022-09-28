@@ -57,12 +57,14 @@ services:
       - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9000}:9000"
       - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
     labels:
-     ## HTTP Routers
+      ## HTTP Routers
       - "traefik.http.routers.authentik-rtr.rule=Host(`auth.domain.id`)"
       - "traefik.http.routers.authentik-rtr.entrypoints=websecure"
       - "traefik.http.routers.authentik-rtr.tls=true"
       - "traefik.http.routers.authentik-rtr.tls.certresolver=letsencrypt"
-      ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardA>      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.korone.my.id`) &>      - "traefik.http.routers.authentik-rtr-outpost.entrypoints=websecure"
+      ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)
+      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.domain.id`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr-outpost.entrypoints=websecure"
       - "traefik.http.routers.authentik-rtr-outpost.tls=true"
       - "traefik.http.routers.authentik-rtr-outpost.tls.certresolver=letsencrypt"
       ## HTTP Services
@@ -109,7 +111,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.letsencrypt.acme.email=email@.domain.id"
+      - "--certificatesresolvers.letsencrypt.acme.email=amurdwys@domain.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
@@ -120,12 +122,14 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
     labels:
+    labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.entryPoints=traefik"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
       - "traefik.http.routers.api.service=api@internal"
       - "traefik.http.routers.api.middlewares=api-auth"
-      - "traefik.http.middlewares.api-auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" # >      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.middlewares.api-auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" # >      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 

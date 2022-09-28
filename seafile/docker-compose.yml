@@ -39,7 +39,7 @@ services:
       - SEAFILE_ADMIN_EMAIL=amurdwys@gmail.com # Specifies Seafile admin user, default is 'me@example.com'.
       - SEAFILE_ADMIN_PASSWORD=Ndakada240398     # Specifies Seafile admin password, default is 'asecret'.
       - SEAFILE_SERVER_LETSENCRYPT=false   # Whether to use https or not.
-      - SEAFILE_SERVER_HOSTNAME=sea.korone.my.id # Specifies your domainname
+      - SEAFILE_SERVER_HOSTNAME=sea.domain.my.id # Specifies your domainname
     labels:
       - traefik.enable=true
       - traefik.http.services.seafile.loadbalancer.server.port=80
