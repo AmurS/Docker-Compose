@@ -8,8 +8,7 @@ This is a repository for my simple docker compose configs that I deploy on my se
 
 
 ### Docker Compose
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 * [Portainer with Traefik](portainer-traefik/)
 * [Portainer + Traefik + Authentik](portainer-traefik-authentik/)
 * [Watchtower](watchtower/)
@@ -18,15 +17,4 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Uptime Kuma](uptime-kuma/)
 * [OpenSpeedTest](openspeedtest/)
 * [LibreSpeedTest](librespeedtest/)
-=======
-* [Portainer with Traefik](portainer-traefik/README.md)
-* [Watchtower](watchtower/README.md)
-* [OwnCloud](owncloud/README.md)
-* [Seafile](seafile/README.md)
->>>>>>> ee84511... Init.
-=======
-* [Portainer with Traefik](portainer-traefik/)
-* [Watchtower](watchtower/)
-* [OwnCloud](owncloud/)
-* [Seafile](seafile/)
->>>>>>> f630ac1... Readme relative location.
+
