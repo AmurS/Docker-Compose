@@ -1,0 +1,168 @@
+---
+version: '3.7'
+
+services:
+  postgresql:
+    container_name: authentik-sql
+    image: docker.io/library/postgres:12-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=authentiksekrit
+      - POSTGRES_USER=authentik
+      - POSTGRES_DB=authentik
+    env_file:
+      - .env
+
+  redis:
+    container_name: authentik-redis
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - redis:/data
+
+  server:
+    container_name: authentik-server
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.9.0}
+    restart: unless-stopped
+    command: server
+    environment:
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentiksekrit
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+    volumes:
+      - ./media:/media
+      - ./custom-templates:/templates
+      - geoip:/geoip
+    env_file:
+      - .env
+    ports:
+      - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9000}:9000"
+      - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+    labels:
+     ## HTTP Routers
+      - "traefik.http.routers.authentik-rtr.rule=Host(`auth.domain.id`)"
+      - "traefik.http.routers.authentik-rtr.entrypoints=websecure"
+      - "traefik.http.routers.authentik-rtr.tls=true"
+      - "traefik.http.routers.authentik-rtr.tls.certresolver=letsencrypt"
+      ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardA>      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.korone.my.id`) &>      - "traefik.http.routers.authentik-rtr-outpost.entrypoints=websecure"
+      - "traefik.http.routers.authentik-rtr-outpost.tls=true"
+      - "traefik.http.routers.authentik-rtr-outpost.tls.certresolver=letsencrypt"
+      ## HTTP Services
+      - "traefik.http.routers.authentik-rtr.service=authentik-svc"
+      - "traefik.http.services.authentik-svc.loadBalancer.server.port=9000"
+
+  worker:
+    container_name: authentik-worker
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.9.0}
+    restart: unless-stopped
+    command: worker
+    environment:
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentiksekrit
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+
+    # This is optional, and can be removed. If you remove this, the following will happen
+    # - The permissions for the /media folders aren't fixed, so make sure they are 1000:1000
+    # - The docker socket can't be accessed anymore
+    user: root
+    volumes:
+      - ./media:/media
+      - ./certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./custom-templates:/templates
+      - geoip:/geoip
+    env_file:
+      - .env
+
+  traefik:
+    container_name: traefik
+    image: "traefik:latest"
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.docker"
+      - "--log.level=ERROR"
+      - "--entrypoints.traefik.address=:8080"
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.letsencrypt.acme.email=amurdwys@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8080"
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.entryPoints=traefik"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=api-auth"
+      - "traefik.http.middlewares.api-auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/" # >      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # Watchtower monitor only
+      - "com.centurylinklabs.watchtower.monitor-only=true"
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      # Frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portainer-ociarm1.korone.my.id`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge-ociarm1.korone.my.id`)"
+      - "traefik.http.routers.edge.entrypoints=websecure"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.edge.service=edge"
+      - "traefik.http.routers.edge.tls.certresolver=letsencrypt"
+
+      # Watchtower monitor only
+      #- "com.centurylinklabs.watchtower.monitor-only=true"
+      
+volumes:
+  database:
+    driver: local
+  redis:
+    driver: local
+  geoip:
+    driver: local
+  portainer_data:
