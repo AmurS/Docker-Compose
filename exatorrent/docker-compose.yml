@@ -1,0 +1,14 @@
+version: '3.3'
+
+services:
+  exatorrent:
+    image: ghcr.io/varbhat/exatorrent:latest
+    container_name: exatorrent
+    command: -torc
+    user: 0:993 #UID:GID
+    volumes:
+      - /home/torrent:/exa/exadir
+    ports:
+      - 6417:5000  # Web UI
+      - 6418:42069 # Torrent client
+    restart: always
