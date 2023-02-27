@@ -16,4 +16,5 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Uptime Kuma](uptime-kuma/)
 * [OpenSpeedTest](openspeedtest/)
 * [LibreSpeedTest](librespeedtest/)
-* [Exatorent](exatorrent/)
+* [Exatorrent](exatorrent/)
+* [Calibre Web](calibre-web/)

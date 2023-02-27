@@ -1,0 +1,69 @@
+version: "3.3"
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1001 #PUID docker user
+      - PGID=1001 #PGID docker user 
+      - TZ=Asia/Jakarta
+      #- DOCKER_MODS=linuxserver/mods:universal-calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - /home/ubuntu/calibre-web/config:/config
+      - /home/ubuntu/calibre-web/books:/books
+    #ports:
+    #  - 8083:8083
+    networks:
+      - portainer-traefik_default #docker network
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.calibreweb.loadbalancer.server.port=8083
+      - traefik.http.routers.calibreweb.rule=Host(`perpus.domain.id`)
+      - traefik.http.routers.calibreweb.tls.certresolver=letsencrypt
+      - traefik.http.routers.calibreweb.entrypoints=websecure
+      - traefik.http.routers.calibreweb.service=calibreweb
+      - traefik.http.routers.calibreweb.tls=true
+      #Traefik redirect http entrypoint to https
+      - traefik.http.services.calibreweb-http.loadbalancer.server.port=8083
+      - traefik.http.routers.calibreweb-http.entrypoints=web
+      - traefik.http.routers.calibreweb-http.rule=Host(`perpus.domain.id`)
+      - traefik.http.routers.calibreweb-http.service=calibreweb-http
+      - traefik.http.routers.calibreweb-http.middlewares=calibreweb-https
+      - traefik.http.middlewares.calibreweb-https.redirectscheme.scheme=https
+
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID=1001 #PUID docker user 
+      - PGID=1001 #PGID docker user
+      - TZ=Asia/Jakarta
+      - PASSWORD=password #optional
+      #- CLI_ARGS= #optional
+    volumes:
+      - /home/ubuntu/calibre-web/config:/config
+      - /home/ubuntu/calibre-web/books:/books
+    #ports:
+    #  - 8084:8080
+    #  - 8085:8081
+    networks:
+      - portainer-traefik_default #docker network
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.calibreback.loadbalancer.server.port=8080
+      - traefik.http.routers.calibreback.rule=Host(`perpusback.domain.id`)
+      - traefik.http.routers.calibreback.tls.certresolver=letsencrypt
+      - traefik.http.routers.calibreback.entrypoints=websecure
+      - traefik.http.routers.calibreback.service=calibreback
+      - traefik.http.routers.calibreback.tls=true
+      #Authentik SSO
+      - traefik.http.routers.calibreback.middlewares=authentik@docker
+
+networks:
+  portainer-traefik_default: #existing docker network
+    external: true
