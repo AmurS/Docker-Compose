@@ -1,3 +1,3 @@
 # LibreSpeed
 
-`PUID=1001, PGID=1001` need to be changed to docker / user uid and gid in the server.
+Run LibreSpeed in multi server mode with frontend and backend container. Customize the compose file to fit your purpose.
