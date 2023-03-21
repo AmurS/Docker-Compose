@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+  qbittorrent:
+    container_name: qBittorent
+    image: hotio/qbittorrent
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Jakarta
+      - WEBUI_PORTS=9191
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+    #ports:
+      #- 9191:9191
+      #- 6881:6881/tcp
+      #- 6881:6881/udp
+    volumes:
+      - ./config:/config
+      #- ./files/data:/data
+      #- ./files/incomplete:/incomplete
+      - ./volume/qbit:/downloads
+    labels:
+      # Traefik qBittorrent domain at domain.id/qbit 
+      - traefik.enable=true
+      - traefik.http.services.qbit.loadbalancer.server.port=9191
+      - traefik.http.routers.qbit.rule=Host(`domain.id`)&& PathPrefix(`/qbit`)
+      - traefik.http.routers.qbit.middlewares=qbit-stripprefix,qbit-strip-prefix-1
+      - traefik.http.middlewares.qbit-strip-prefix-1.redirectregex.regex=^(https?://[^/]+/[a-z0-9_]+)$$
+      - traefik.http.middlewares.qbit-strip-prefix-1.redirectregex.replacement=$${1}/
+      - traefik.http.middlewares.qbit-strip-prefix-1.redirectregex.permanent=true
+      #- traefik.http.middlewares.qbit-strip-prefix-2.stripprefixregex.regex=/[a-z0-9_]+
+      - traefik.http.middlewares.qbit-stripprefix.stripprefix.prefixes=/qbit/
+      - traefik.http.routers.qbit.tls.certresolver=letsencrypt
+      - traefik.http.routers.qbit.entrypoints=websecure
+      - traefik.http.routers.qbit.service=qbit
+    networks:
+      - portainer_default
+    cap_add:
+      - NET_ADMIN #Need to be enabled for tc shaping
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4' #limit container cpu to 40%
+  qbitgohttp:
+    container_name: qBitGoHTTP
+    image: mjpclab/ghfs
+    user: 1000:1000
+    restart: unless-stopped
+    #overide  docker image command
+    #listen port 8080, /var/ghfs/ as root dir, global delete, global archive, hide lost+found
+    command: ["/usr/local/bin/ghfs", "--listen-plain", "8080", "-r", "/var/ghfs/", "--global-delete", "--global-archive", "-HD", "lost+found"]
+    #ports:
+    #  - 9292:8080
+    volumes:
+      - ./volume/qbit:/var/ghfs
+    networks:
+      - portainer_default
+    labels:
+      # Traefik fileserver domain at domain.id/files
+      - traefik.enable=true
+      - traefik.http.services.qbitfile.loadbalancer.server.port=8080
+      - traefik.http.routers.qbitfile.rule=Host(`domain.id`)&& PathPrefix(`/files`)
+      - traefik.http.routers.qbitfile.middlewares=qbitfile-stripprefix,qbitfile-strip-prefix-1,qbitfile-auth
+      - traefik.http.middlewares.qbitfile-strip-prefix-1.redirectregex.regex=^(https?://[^/]+/[a-z0-9_]+)$$
+      - traefik.http.middlewares.qbitfile-strip-prefix-1.redirectregex.replacement=$${1}/
+      - traefik.http.middlewares.qbitfile-strip-prefix-1.redirectregex.permanent=true
+      #- traefik.http.middlewares.qbitfile-strip-prefix-2.stripprefixregex.regex=/[a-z0-9_]+
+      - traefik.http.middlewares.qbitfile-stripprefix.stripprefix.prefixes=/files/
+      # Basic auth
+      - traefik.http.middlewares.qbitfile-auth.basicauth.users=uwu:$$xxx$$xxxxxxx$$jFElcmjsbsyqaRNZyQ4js/ #replace this before deploying
+      - traefik.http.routers.qbitfile.tls.certresolver=letsencrypt
+      - traefik.http.routers.qbitfile.entrypoints=websecure
+      - traefik.http.routers.qbitfile.service=qbitfile
+
+#docker existing network
+networks:
+  portainer_default:
+    external: true
