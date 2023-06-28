@@ -19,3 +19,4 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Exatorrent](exatorrent/)
 * [Calibre Web](calibre-web/)
 * [qBittorrent + Go-HTTP-File-Server](qbittgohttp/)
+* [Go-Socks5-Proxy](socks5-proxy/)

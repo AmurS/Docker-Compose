@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  go-socks5:
+    image: serjs/go-socks5-proxy:latest
+    container_name: go-socks5-proxy
+    environment:
+      - PROXY_USER=user
+      - PROXY_PASSWORD=userpass
+      - PROXY_PORT=2222
+    ports:
+      - 2222:2222 # socks5 port
+    restart: always
