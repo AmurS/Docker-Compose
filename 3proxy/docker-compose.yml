@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  3proxy:
+    image: tarampampam/3proxy
+    container_name: 3proxy
+    environment:
+      - PROXY_LOGIN=user
+      - PROXY_PASSWORD=password
+      - PROXY_PORT=8888
+      - SOCKS_PORT=2222
+
+    ports:
+      - 8888:8888 # http port
+      - 2222:2222 # socks5 port
+    restart: always
