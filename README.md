@@ -22,4 +22,5 @@ This is a repository for my simple docker compose configs that I deploy on my se
 * [Go-Socks5-Proxy](socks5-proxy/)
 * [3Proxy](3proxy/)
 * [Cloudflared](cloudflared-tunnel/)
-* [Kavita](kavita/)
+* [Nginx Proxy Manager](nginxpm/)
+* [Kavita](calibre-kavita/)

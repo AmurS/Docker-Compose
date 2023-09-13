@@ -1,0 +1,72 @@
+version: "3.3"
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID=0 #PUID docker user
+      - PGID=0 #PGID docker user
+      - TZ=Asia/Jakarta
+      - PASSWORD=pass #optional
+      #- CLI_ARGS= #optional
+    volumes:
+      - /home/client/calibre-web/config:/config
+      - /home/client/calibre-web/books:/books
+      - /mnt/Data/Calibre:/koronsea
+      - /home/client/kavita:/kavita
+    #ports:
+    #  - 8084:8080
+    #  - 8085:8081
+    networks:
+      - portainer_default #docker network
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.calibreback.loadbalancer.server.port=8080
+      - traefik.http.routers.calibreback.rule=Host(`perpusback.domain`)
+      #- traefik.http.routers.calibreback.tls.certresolver=letsencrypt
+      - traefik.http.routers.calibreback.entrypoints=web
+      - traefik.http.routers.calibreback.service=calibreback
+      #- traefik.http.routers.calibreback.tls=true
+      #Authentik SSO
+      #- traefik.http.routers.calibreback.middlewares=authentik@docker
+
+  kavita:
+    image: kizaing/kavita:latest    # Change latest to nightly for latest develop builds (can't go back to stable)
+    container_name: kavita
+    volumes:
+      - /home/client/kavita/manga:/manga            # Manga is just an example you can have the name you want. See the following
+      - /home/client/kavita/doujin:/doujin          # Use as many as you want
+      - /home/client/kavita/ebook:/ebook            #
+      - /home/client/kavita/ebook-fantl:/ebook-fantl
+      - /home/client/kavita/textbook:/textbook
+      - /home/client/kavita/data:/kavita/config     # Change './data if you want to have the config files in a different place.
+      - /mnt/Data/Calibre:/koronsea                 # /kavita/config must not be changed
+    environment:
+      - TZ=Asia/Jakarta
+    #ports:
+    #  - "5000:5000" # Change the public port (the first 5000) if you have conflicts with other services
+    networks:
+      - portainer_default #docker network
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.kavita.loadbalancer.server.port=5000
+      - traefik.http.routers.kavita.rule=Host(`lib.domain`)
+      - traefik.http.routers.kavita.tls.certresolver=letsencrypt
+      - traefik.http.routers.kavita.entrypoints=websecure
+      - traefik.http.routers.kavita.service=kavita
+      - traefik.http.routers.kavita.tls=true
+      #Traefik redirect http entrypoint to https
+      - traefik.http.services.kavita-http.loadbalancer.server.port=5000
+      - traefik.http.routers.kavita-http.entrypoints=web
+      - traefik.http.routers.kavita-http.rule=Host(`lib.domain`)
+      - traefik.http.routers.kavita-http.service=kavita-http
+      - traefik.http.routers.kavita-http.middlewares=kavita-https
+      - traefik.http.middlewares.kavita-https.redirectscheme.scheme=https
+
+networks:
+  portainer_default: #existing docker network
+    external: true
