@@ -1,0 +1,57 @@
+version: '3.7'
+
+services:
+  pihole:
+    container_name: pihole-arm
+    image: pihole/pihole:latest
+    hostname: pihole-arm
+    mac_address: d0:ca:ab:cd:ef:01
+#     cap_add: # Uncomment if you want to use Pi-Hole for DHCP
+#       - NET_ADMIN
+#    ports:  #No need for port forwarding if using MCAVLAN
+#      - 443/tcp
+#      - 53/tcp
+#      - 53/udp
+#       - 67/udp # Uncomment if you want to use Pi-Hole for DHCP
+#      - 80/tcp
+#      - 22/tcp
+    environment:
+      - FTLCONF_LOCAL_IPV4=192.168.0.11
+      - WEBPASSWORD=password
+      - PIHOLE_DNS_=192.168.0.12
+    volumes:
+      - ./volume:/etc/pihole:rw
+      #- ./config/hosts:/etc/hosts:ro
+      - ./config/resolv.conf:/etc/resolv.conf:ro
+      #- ./config/dnsmasq.conf:/etc/dnsmasq.d/02-network.conf:ro
+      #- ./config/pihole-FTL.conf:/etc/pihole/pihole-FTL.conf:ro
+    networks:
+      home:
+        ipv4_address: 192.168.0.11 #PiHole IP
+    restart: always
+
+  unbound:
+    container_name: unbound-arm
+    image: klutchell/unbound
+    hostname: unbound-arm
+    mac_address: d0:ca:ab:cd:ef:02
+    volumes:
+      - ./unbound:/etc/unbound/custom.conf.d
+#    ports: #No need for port forwarding if using MCAVLAN
+#      - 53/tcp
+#      - 53/udp
+    networks:
+      home:
+        ipv4_address: 192.168.0.12 #Unbound IP
+    restart: always
+
+networks: #MACVLAN 
+  home:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 192.168.0.1/24 #Your local network subnet
+          gateway: 192.168.0.1 #Your Local netwirk router gateway
+          ip_range: 192.168.0.11/30 # 192.168.0.11 and 192.168.0.12
